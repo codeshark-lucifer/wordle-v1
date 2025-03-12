@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+.selected {
+    @apply border-dashed border-2 border-white ring-1
+}
+
+.incorrect {
+    @apply bg-red-400
+}
+
+.correct {
+    @apply bg-green-400
+}
+
+
+.wrong-pos  {
+    @apply bg-amber-400
+}
