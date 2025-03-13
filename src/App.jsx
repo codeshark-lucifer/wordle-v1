@@ -4,13 +4,27 @@ const App = () => {
     const [word, setWord] = useState("");
     const [data, setData] = useState([]);
     const [isShowHits, setIsShowHits] = useState(false);
- 
-    
+    const [isGameOver, setGameState] = useState(false);
+
     const keyboard = [
         ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
         ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
         ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'DELETE']
     ];
+
+    const clearBoard = () => {
+        document.querySelectorAll(".letter").forEach(letter => {
+            letter.innerText = "";
+            letter.classList.remove("correct", "wrong-pos", "incorrect", "selected");
+        });
+    
+        let rows = document.querySelectorAll(".grid-rows-6 > div");
+        rows.forEach(row => row.classList.remove("active"));
+        
+        rows[0].classList.add("active");
+        rows[0].querySelector(".letter").classList.add("selected");
+    };
+    
 
     const fetchData = async () => {
         try {
@@ -60,21 +74,33 @@ const App = () => {
                                 } else {
                                     letterElement.classList.add("incorrect");
                                 }
+
                             } else {
                                 console.error("Error: 'word' is not a string", word);
                             }
                         });
 
-                        // Move to the next row after checking
                         let activeRow = document.querySelector(".active");
-                        if (activeRow.nextElementSibling) {
-                            activeRow.classList.remove("active");
-                            activeRow.nextElementSibling.classList.add("active");
-
-                            // Set the first letter in the new row as selected
-                            let nextRowLetters = activeRow.nextElementSibling.querySelectorAll(".letter");
-                            nextRowLetters[0].classList.add("selected");
+                        activeRow.querySelector(".selected").classList.remove("selected")
+                       
+                        // TODO : Check if all column is all correct
+                        let correctColumns = [...activeRow.querySelectorAll(".correct")]
+                        if(correctColumns.length === 5) {
+                            setGameState(true);
                         }
+                        else {
+                            // Move to the next row after checking
+                            if (activeRow.nextElementSibling) {
+                                
+                                activeRow.classList.remove("active");
+                                activeRow.nextElementSibling.classList.add("active");
+    
+                                // Set the first letter in the new row as selected
+                                let nextRowLetters = activeRow.nextElementSibling.querySelectorAll(".letter");
+                                nextRowLetters[0].classList.add("selected");
+                            }
+                        }
+                        
                     } else {
                         console.error("Invalid word:", currentWord);
                     }
@@ -100,6 +126,39 @@ const App = () => {
                 className="fixed bottom-4 right-4 cursor-pointer text-2xl hover:text-gray-400">
                 <i className="fa-solid fa-puzzle-piece"></i>
             </button>
+            {
+                isShowHits &&
+                (<div className="flex gap-2 justify-center items-center bg-gray-700 rounded-md p-6 fixed">
+                    <p className="text-[1.2rem] font-bold ">hits: </p>
+                    {
+                        (word).split("").map((letter, index) => (
+                            <span key={index} className="text-[1.2rem] font-bold">
+                                {(index === 0 || index === word.length - 1) ? letter : "_"}
+                            </span>
+                        ))
+                    }
+                </div>)
+            }
+            {
+                isGameOver && (
+                    <div
+                        className="fixed w-100 h-100 bg-gray-700 rounded-md ring-3 ring-gray-600 flex flex-col items-center"
+                    >
+                        <h1 className="text-3xl font-bold text-center my-15">YOU WIN!</h1>
+                        <h2 className="text-center">Current Word is : {word}</h2>
+                        <button 
+                            onClick={() => {
+                                setGameState(false)
+                                fetchData()
+                                clearBoard()
+                            }}
+                            className="absolute bottom-10 py-2 px-4 ring-green-400 ring-2 bg-green-500 rounded-full"
+                            >
+                                Next Word
+                        </button>
+                    </div>)
+
+            }
 
             <h1 className="text-3xl font-bold my-5">Wordle</h1>
             <div className="h-100 grid grid-rows-6">
@@ -113,17 +172,6 @@ const App = () => {
                     </div>
                 ))}
             </div>
-
-            {
-                isShowHits &&
-                (<div className="flex gap-2 justify-center items-center">
-                    <p className="text-[1.2rem] font-bold ">hits: </p>
-                    {
-                        (word).split("").map((letter, index) => (<span className="text-[1.2rem] font-bold">{(index === 0 || index === word.length - 1) ? letter : "_"}</span>))
-
-                    }
-                </div>)
-            }
 
             {/* Keyboard Layout */}
             <div className="flex flex-col gap-2">
